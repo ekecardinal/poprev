@@ -13,7 +13,7 @@ const transactionSchema = Joi.object({
 });
 
 const createTransaction = async (req, res) => {
-  const { error, value } = projectSchema.validate(req.body, {
+  const { error, value } = transactionSchema.validate(req.body, {
     abortEarly: false,
   });
   if (error) {
