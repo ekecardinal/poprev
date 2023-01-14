@@ -1,13 +1,27 @@
 import User from "../models/User.js";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnAuthenticatedError } from "../errors/index.js";
+import Joi from "joi";
+
+const registerSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+  fullName: Joi.string().min(3).required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+});
 
 const register = async (req, res) => {
-  const { fullName, email, password } = req.body;
-
-  if (!fullName || !email || !password) {
-    throw new BadRequestError("please provide all values");
+  const { error, value } = registerSchema.validate(req.body, {
+    abortEarly: false,
+  });
+  if (error) {
+    throw new BadRequestError(error.details.map((msg) => msg.message));
   }
+  const { fullName, email, password } = req.body;
 
   const userExist = await User.findOne({ email });
   if (userExist) {
@@ -20,11 +34,16 @@ const register = async (req, res) => {
     .status(StatusCodes.CREATED)
     .json({ user: { email: user.email, fullName: user.fullName }, token });
 };
+
 const login = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    throw BadRequestError("Please provide all values");
+  const { error, value } = loginSchema.validate(req.body, {
+    abortEarly: false,
+  });
+  if (error) {
+    throw new BadRequestError(error.details.map((msg) => msg.message));
   }
+  const { email, password } = req.body;
+
   const user = await User.findOne({ email }).select("+password");
   if (!user) {
     throw new UnAuthenticatedError("Invalid credentials");

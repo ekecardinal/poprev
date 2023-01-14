@@ -3,11 +3,24 @@ import { StatusCodes } from "http-status-codes";
 import { BadRequestError } from "../errors/index.js";
 import Project from "../models/Project.js";
 
+import Joi from "joi";
+
+const transactionSchema = Joi.object({
+  projectName: Joi.string().required(),
+  projectTitle: Joi.string().required(),
+  numberOfToken: Joi.number().required(),
+  amount: Joi.number().required(),
+});
+
 const createTransaction = async (req, res) => {
-  const { numberOfToken, projectName, projectTitle, amount } = req.body;
-  if (!numberOfToken || !amount || !projectName || !projectTitle) {
-    throw new BadRequestError("Please provide all values");
+  const { error, value } = projectSchema.validate(req.body, {
+    abortEarly: false,
+  });
+  if (error) {
+    throw new BadRequestError(error.details.map((msg) => msg.message));
   }
+  const { numberOfToken, projectName, projectTitle, amount } = req.body;
+
   const id = req.params.id;
   const userId = req.user.userId;
   const project = await Project.findOne({ _id: id });
