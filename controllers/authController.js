@@ -18,6 +18,7 @@ const register = async (req, res) => {
   const { error, value } = registerSchema.validate(req.body, {
     abortEarly: false,
   });
+
   if (error) {
     throw new BadRequestError(error.details.map((msg) => msg.message));
   }
@@ -48,7 +49,6 @@ const login = async (req, res) => {
   if (!user) {
     throw new UnAuthenticatedError("Invalid credentials");
   }
-  console.log(user);
 
   const isPassword = await user.comparePassword(password);
   if (!isPassword) {
